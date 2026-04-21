@@ -1,53 +1,85 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Item } from './entities/items.entity';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 
+// OPERACIONES TYPEORM a SQL 
 
-//hace falta consistencia entre el dto y la interfaz
-export interface Item {
-  id: number;
-  name: string;
-  description?: string;  // opcional, igual que en el DTO
-  category: string;
-  totalStock: number;
-  availableStock: number;
-  price: number;
-}
+// // SELECT * FROM items
+// this.itemsRepository.find();
+
+// // SELECT * FROM items WHERE category = 'Electronics'
+// this.itemsRepository.find({ where: { category: 'Electronics' } });
+
+// // SELECT * FROM items WHERE id = 1 LIMIT 1
+// this.itemsRepository.findOne({ where: { id: 1 } });
+
+// // INSERT INTO items (name, price) VALUES ('Laptop', 999)
+// const item = this.itemsRepository.create(dto);
+// this.itemsRepository.save(item);
+
+// // UPDATE items SET price = 500 WHERE id = 1
+// const item = await this.itemsRepository.findOne({ where: { id: 1 } });
+// Object.assign(item, { price: 500 });
+// this.itemsRepository.save(item);
+
+// // DELETE FROM items WHERE id = 1
+// this.itemsRepository.delete(1);
+
+// // SELECT COUNT(*) FROM items
+// this.itemsRepository.count();
+
+// // SELECT * FROM items WHERE price > 100 ORDER BY price ASC LIMIT 10
+// this.itemsRepository.find({
+//   where: { price: MoreThan(100) },  // necesita import de typeorm
+//   order: { price: 'ASC' },
+//   take: 10,                         // LIMIT
+// });
+
+// // SELECT * FROM items WHERE price > 100 ORDER BY price ASC LIMIT 10 OFFSET 20
+// this.itemsRepository.find({
+//   where: { price: MoreThan(100) },
+//   order: { price: 'ASC' },
+//   take: 10,   // LIMIT
+//   skip: 20,   // OFFSET — para paginación
+// });
 
 @Injectable()
 export class ItemsService {
-private items: Item[] = [
-  { id: 1, name: 'Laptop',     description: 'Gaming laptop',       category: 'Electronics', totalStock: 10, availableStock: 8,  price: 999 },
-  { id: 2, name: 'Mouse',      description: 'Wireless mouse',      category: 'Electronics', totalStock: 50, availableStock: 45, price: 29  },
-  { id: 3, name: 'Keyboard',   description: 'Mechanical keyboard', category: 'Electronics', totalStock: 30, availableStock: 28, price: 79  },
-  { id: 4, name: 'Monitor',    description: '4K display',          category: 'Electronics', totalStock: 15, availableStock: 10, price: 399 },
-  { id: 5, name: 'Headphones', description: 'Noise cancelling',    category: 'Audio',       totalStock: 20, availableStock: 18, price: 199 },
-];
-  
-      findAll(): Item[] {
-    return this.items;
+  constructor(
+    @InjectRepository(Item)
+    private readonly itemsRepository: Repository<Item>, // TypeORM nos da este repositorio
+  ) {}
+
+  async findAll(): Promise<Item[]> {
+  return this.itemsRepository.find();
   }
 
-    create(dto: CreateItemDto): Item {
-    const newItem: Item = {
-      id: this.items.length + 1, //  id basado en longitud del array
-      ...dto,                     // los 3 puntos copia todos los campos del DTO al objeto
-    };
-
-    this.items.push(newItem);
-    return newItem;
+  async findOne(id: number): Promise<Item> {
+    const item = await this.itemsRepository.findOne({ where: { id } });
+    if (!item) throw new NotFoundException(`Item #${id} not found`);
+    return item;
   }
 
-  update(id: number, dto: UpdateItemDto): Item {
-    const itemIndex = this.items.findIndex(item => item.id === id);
-    if (itemIndex === -1) {
-      throw new NotFoundException('Item not found'); // para error 404 si no se encuentra el item
-    }   
-    else {
-        const updatedItem = { ...this.items[itemIndex], ...dto }; // con los 3 puntos se mergea del item existente con los nuevos datos
-        this.items[itemIndex] = updatedItem;
-        return updatedItem;
-    }
+  async deleteOne(id: number): Promise<void> {
+    await this.findOne(id); // lanza NotFoundException si no existe
+    await this.itemsRepository.delete(id);
+  }
 
+  async deleteAll(): Promise<void> {
+    await this.itemsRepository.clear();
+  }
+
+  async create(dto: CreateItemDto): Promise<Item> {
+  const item = this.itemsRepository.create(dto);
+  return this.itemsRepository.save(item);
+  }
+
+  async update(id: number, dto: UpdateItemDto): Promise<Item> {
+    const item = await this.findOne(id);            // busca o lanza 404
+    Object.assign(item, dto);                       // merge igual que el spread operator
+    return this.itemsRepository.save(item);         // UPDATE items SET ...
   }
 }
