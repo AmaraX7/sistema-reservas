@@ -1,12 +1,10 @@
 ﻿import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { CreateRoomDto } from './dto/create-room.dto';
+import { CreateResourceDto } from './dto/create-resource.dto';
 import { UpdateResourceDto } from './dto/update-resource.dto';
 import { ResourcesService } from './resources.service';
 import { Resource } from './entities/resource.entity';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { CreateLabEquipmentDto } from './dto/create-lab-equipment.dto';
-import { CreateLaptopDto } from './dto/create-laptop.dto';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
@@ -28,36 +26,8 @@ export class ResourcesController {
     @ApiBearerAuth('JWT-auth')
     @Roles('admin')
     @ApiOperation({ summary: 'Crear un nuevo recurso' })
-  create(@Body() dto: CreateRoomDto): Promise<Resource> {
-  return this.resourcesService.createResource(dto);
-  }
-  
-  @Post('room')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@ApiBearerAuth('JWT-auth')
-@Roles('admin')
-@ApiOperation({ summary: 'Crear una nueva sala' })
-createRoom(@Body() dto: CreateRoomDto) {
-  return this.resourcesService.createRoom(dto);
-}
-
-
-@Post('laptop')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@ApiBearerAuth('JWT-auth')
-@Roles('admin')
-@ApiOperation({ summary: 'Crear una nueva laptop' })
-createLaptop(@Body() dto: CreateLaptopDto) {
-  return this.resourcesService.createLaptop(dto);
-}
-
-@Post('lab')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@ApiBearerAuth('JWT-auth')
-@Roles('admin')
-@ApiOperation({ summary: 'Crear un nuevo equipo de laboratorio' })
-createLabEquipment(@Body() dto: CreateLabEquipmentDto) {
-  return this.resourcesService.createLabEquipment(dto);
+  create(@Body() dto: CreateResourceDto): Promise<Resource> {
+  return this.resourcesService.create(dto);
 }
 
 @Delete(':id') 

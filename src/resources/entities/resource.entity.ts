@@ -1,4 +1,4 @@
-﻿import { Column, Entity, PrimaryGeneratedColumn, TableInheritance } from 'typeorm';
+﻿import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { CreateDateColumn } from 'typeorm/decorator/columns/CreateDateColumn';
 
 
@@ -9,7 +9,6 @@ export enum ResourceStatus {
 }
 
 @Entity('resources')
-@TableInheritance({ column: { type: 'varchar', name: 'type' } })
 export class Resource {
 
   @PrimaryGeneratedColumn() // id autoincremental como serial en SQL
@@ -27,6 +26,9 @@ export class Resource {
 
   @Column()
   location!: string;
+
+  @Column()
+  type!: string;
 
   @CreateDateColumn() // fecha de creación automática
   createdAt!: Date;

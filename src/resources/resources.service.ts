@@ -1,14 +1,9 @@
 ﻿import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Resource } from './entities/resource.entity';
-import { CreateRoomDto } from './dto/create-room.dto';
+import { CreateResourceDto } from './dto/create-resource.dto';
 import { UpdateResourceDto } from './dto/update-resource.dto';
-import { Laptop } from './entities/laptop.entity';
-import { LabEquipment } from './entities/lab-equipment.entity';
-import { Room } from './entities/room.entity.';
-import { CreateLabEquipmentDto } from './dto/create-lab-equipment.dto';
-import { CreateLaptopDto } from './dto/create-laptop.dto';
 
 // OPERACIONES TYPEORM a SQL 
 
@@ -56,12 +51,6 @@ export class ResourcesService {
   constructor(
   @InjectRepository(Resource)
   private readonly resourcesRepository: Repository<Resource>,
-  @InjectRepository(Room)
-  private readonly roomsRepository: Repository<Room>,
-  @InjectRepository(Laptop)
-  private readonly laptopsRepository: Repository<Laptop>,
-  @InjectRepository(LabEquipment)
-  private readonly labEquipmentRepository: Repository<LabEquipment>,
   ) {}
 
   async findAll(): Promise<Resource[]> {
@@ -79,24 +68,9 @@ export class ResourcesService {
     await this.resourcesRepository.delete(id);
   }
 
-  async createResource(dto: CreateRoomDto): Promise<Resource> {
-  const resource = this.resourcesRepository.create(dto);
-  return this.resourcesRepository.save(resource);
-  }
-
-    async createRoom(dto: CreateRoomDto): Promise<Room> {
-    const room = this.roomsRepository.create(dto);
-    return this.roomsRepository.save(room);
-  }
-
-  async createLaptop(dto: CreateLaptopDto): Promise<Laptop> {
-    const laptop = this.laptopsRepository.create(dto);
-    return this.laptopsRepository.save(laptop);
-  }
-
-  async createLabEquipment(dto: CreateLabEquipmentDto): Promise<LabEquipment> {
-    const labEquipment = this.labEquipmentRepository.create(dto);
-    return this.labEquipmentRepository.save(labEquipment);
+  async create(dto: CreateResourceDto): Promise<Resource> {
+    const resource = this.resourcesRepository.create(dto);
+    return this.resourcesRepository.save(resource);
   }
   
   async update(id: number, dto: UpdateResourceDto): Promise<Resource> {

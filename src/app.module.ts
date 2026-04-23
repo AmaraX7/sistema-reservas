@@ -27,7 +27,7 @@ import { ReservationsModule } from './reservations/reservations.module';
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
         autoLoadEntities: true, // carga automÃ¡ticamente las entidades que definas
-        synchronize: true,      // crea/actualiza tablas automÃ¡ticamente â€” solo en desarrollo
+        synchronize: false ,      // crea/actualiza tablas automÃ¡ticamente â€” solo en desarrollo
       }),
       inject: [ConfigService],
     }),
