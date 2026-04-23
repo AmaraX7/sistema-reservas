@@ -7,6 +7,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { ReservationsModule } from './reservations/reservations.module';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 
 @Module({
@@ -32,6 +34,11 @@ import { ReservationsModule } from './reservations/reservations.module';
       inject: [ConfigService],
     }),
 
+      ThrottlerModule.forRoot([{
+    ttl: 60000,  // ventana de 60 segundos
+    limit: 20,   // máximo 20 requests por IP en esa ventana
+  }]),
+
     ResourcesModule,
 
     UsersModule,
@@ -41,7 +48,10 @@ import { ReservationsModule } from './reservations/reservations.module';
     ReservationsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, {
+  provide: APP_GUARD,
+  useClass: ThrottlerGuard,
+}],
 })
 export class AppModule {}
 

@@ -1,98 +1,134 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Unibook API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+REST API for managing university resource reservations — classrooms, laptops, and lab equipment. Built with NestJS, PostgreSQL, and deployed on Render.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+🔗 **Production**: https://unibook-api.onrender.com  
+📖 **Swagger docs**: https://unibook-api.onrender.com/api
 
-## Description
+---
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Stack
 
-## Project setup
+- **Framework**: NestJS (Node.js + TypeScript)
+- **Database**: PostgreSQL + TypeORM
+- **Auth**: JWT with Passport
+- **Validation**: class-validator + class-transformer
+- **Documentation**: Swagger (@nestjs/swagger)
+- **Deployment**: Docker + Render + Supabase
 
+---
+
+## Architecture decisions
+
+- **Single resource entity** — all resource types (classroom, laptop, lab equipment) share a single `Resource` entity with a `type` field. Subclasses were considered but discarded: if everything is reserved the same way, they are not different classes — they are the same object with a different type. This keeps the design simple and extensible: adding a new resource type requires zero code changes.
+- **JWT authentication** — stateless auth with access tokens. Guards and roles are applied at the controller level, keeping business logic clean in services.
+- **Role-based access control** — custom `RolesGuard` reads metadata set by `@Roles()` decorator. Admins manage resources and see all reservations; users manage their own.
+- **Overlap detection** — when creating a reservation, the system queries for any CONFIRMED reservation on the same resource where `startTime < other.endTime AND endTime > other.startTime`. Conflict returns a 400.
+- **Database migrations** — `synchronize: false` in production. Migrations run automatically on deploy via the Dockerfile CMD.
+- **Global exception filter** — all errors return a consistent JSON format with `statusCode`, `message`, `timestamp`, and `path`.
+
+---
+
+## Endpoints
+
+### Auth
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | /auth/register | Create a new account | Public |
+| POST | /auth/login | Login and get JWT token | Public |
+
+### Resources
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| GET | /resources | List all resources | Public |
+| GET | /resources/:id | Get resource detail | Public |
+| POST | /resources | Create a resource | Admin |
+| PATCH | /resources/:id | Update a resource | Admin |
+| DELETE | /resources/:id | Delete a resource | Admin |
+
+### Reservations
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | /reservations | Create a reservation | User |
+| GET | /reservations/my | Get my reservations | User |
+| GET | /reservations/:id | Get reservation detail | User |
+| PATCH | /reservations/:id/status | Update reservation status | User/Admin |
+| GET | /reservations/all | Get all reservations | Admin |
+
+### Users
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| GET | /users/by-email/:email | Find user by email | Admin |
+| PATCH | /users/:id/role | Update user role | Admin |
+| DELETE | /users/:id | Delete user | Admin |
+
+---
+
+## Business logic
+
+### Creating a reservation
+1. Verify the resource exists and is AVAILABLE
+2. Verify `startTime < endTime`
+3. Check for overlapping CONFIRMED reservations on the same resource
+4. If no conflict → status set to CONFIRMED automatically
+5. If conflict → 400 Bad Request
+
+### Updating reservation status
+- `CANCELLED` → only the reservation owner
+- `COMPLETED` → admin only
+- `CONFIRMED` → not allowed manually, set automatically on creation
+
+---
+
+## Run locally
+
+### With Docker
 ```bash
-$ npm install
+git clone https://github.com/your-username/unibook-api
+cd unibook-api
+cp .env.example .env   # fill in your values
+docker-compose up --build
 ```
 
-## Compile and run the project
-
+### Without Docker
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm install
+npm run start:dev
 ```
 
-## Run tests
+---
 
-```bash
-# unit tests
-$ npm run test
+## Environment variables
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=postgres
+DB_PASSWORD=your_password
+DB_NAME=university_reservations
+JWT_SECRET=a_long_secret_key
+JWT_EXPIRES_IN=7d
+PORT=3001
 ```
 
-## Deployment
+---
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## Run migrations
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npx typeorm-ts-node-commonjs migration:run -d src/data-source.ts
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+---
 
-## Resources
+## Project structure
 
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+```
+src/
+├── auth/           # JWT auth, guards, roles decorator
+├── users/          # User entity, service, controller
+├── resources/      # Resource entity (STI), service, controller
+├── reservations/   # Reservation entity, overlap logic, service, controller
+├── common/         # Global exception filter
+└── migrations/     # TypeORM migrations
+```
