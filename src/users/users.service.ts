@@ -6,6 +6,7 @@ import { NotFoundException } from '@nestjs/common/exceptions/not-found.exception
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { UpdateRoleDto } from './dto/update-role.dto';
+import { UpdateUserDto } from './dto/update.user.dto';
 
 
 // repositorio tiene find() findOne() save() delete()
@@ -23,6 +24,22 @@ export class UsersService {
   const user = await this.usersRepository.findOne({ where: { email } });
   if (!user) return null;
   const { password, ...result } = user;
+  return result;
+}
+async findById(id: number) {
+  const user = await this.usersRepository.findOne({ where: { id } });
+  if (!user) throw new NotFoundException(`User #${id} not found`);
+  const { password, ...result } = user;
+  return result;
+}
+
+async updateMe(id: number, dto: UpdateUserDto) {
+  const user = await this.usersRepository.findOne({ where: { id } });
+  if (!user) throw new NotFoundException(`User #${id} not found`);
+  Object.assign(user, dto);
+  const updated = await this.usersRepository.save(user);
+  this.logger.log(`Updated user id=${id}`);
+  const { password, ...result } = updated;
   return result;
 }
 

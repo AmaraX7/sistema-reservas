@@ -1,11 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
-import { User } from './entities/users.entity';
+import { Body, Controller, Delete, Get, Param, Patch, Query, UseGuards, Request } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { Roles } from '../auth/roles.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { ApiOperation, ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { UpdateUserDto } from './dto/update.user.dto';
+
 
 @ApiTags('users')
 @Controller('users')
@@ -13,12 +14,36 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
 
-  @Get('by-email/:email')
+    @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Obtener perfil propio' })
+  getMe(@Request() req) {
+    return this.usersService.findById(req.user.userId);
+  }
+
+  @Patch('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Actualizar perfil propio' })
+  updateMe(@Request() req, @Body() dto: UpdateUserDto) {
+    return this.usersService.updateMe(req.user.userId, dto);
+  }
+
+  @Delete('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Eliminar cuenta propia' })
+  deleteMe(@Request() req): Promise<void> {
+    return this.usersService.deleteById(req.user.userId);
+  }
+
+  @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @ApiOperation({ summary: 'Buscar usuario por email' })
   @ApiBearerAuth('JWT-auth')
-  async findByEmail(@Param('email') email: string) {
+  async findByEmail(@Query('email') email: string) {
     return this.usersService.findByEmail(email);
   }
 

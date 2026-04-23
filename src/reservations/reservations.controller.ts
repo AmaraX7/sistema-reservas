@@ -22,7 +22,7 @@ create(@Body() dto: CreateReservationDto, @Request() req) {
   return this.reservationsService.create(req.user.userId, dto);
 }
 
-@Get('my')
+@Get('me')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('JWT-auth')
 @ApiOperation({ summary: 'Buscar reservas por usuario' })
@@ -41,7 +41,7 @@ updateStatus(@Param('id') id: number, @Body() dto: UpdateReservationDto, @Reques
   return this.reservationsService.updateStatus(id, dto, req.user.userId, req.user.role);
 }
 
-@Get('all')
+@Get()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('admin')
 @ApiBearerAuth('JWT-auth')
