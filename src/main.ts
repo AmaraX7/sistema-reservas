@@ -28,8 +28,8 @@ async function bootstrap() {
   )
   .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  const document = SwaggerModule.createDocument(app, config); // genera la documentación Swagger a partir de los decoradores @Api
+  SwaggerModule.setup('api', app, document); // la documentación Swagger estará en /api
 
   // escucha en el puerto definido en .env o 3000 por defecto
   await app.listen(process.env.PORT ?? 3001);

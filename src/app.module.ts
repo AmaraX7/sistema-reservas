@@ -28,8 +28,8 @@ import { APP_GUARD } from '@nestjs/core';
         username: configService.get('DB_USERNAME'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
-        autoLoadEntities: true, // carga automÃ¡ticamente las entidades que definas
-        synchronize: false ,      // crea/actualiza tablas automÃ¡ticamente â€” solo en desarrollo
+        autoLoadEntities: true, // carga automáticamente las entidades registradas en los módulos
+        synchronize: false ,      // en produccion sync = false!! 
       }),
       inject: [ConfigService],
     }),
@@ -48,9 +48,9 @@ import { APP_GUARD } from '@nestjs/core';
     ReservationsModule,
   ],
   controllers: [AppController],
-  providers: [AppService, {
-  provide: APP_GUARD,
-  useClass: ThrottlerGuard,
+  providers: [AppService, { 
+  provide: APP_GUARD, 
+  useClass: ThrottlerGuard, // aplica el guard globalmente a toda la app
 }],
 })
 export class AppModule {}
