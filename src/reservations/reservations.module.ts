@@ -9,6 +9,6 @@ import { ResourcesModule } from '../resources/resources.module';
 @Module({
   imports: [TypeOrmModule.forFeature([Reservation]), ResourcesModule],
   providers: [ReservationsService],
-  controllers: [ReservationsController]
+  controllers: [ReservationsController],
 })
 export class ReservationsModule {}

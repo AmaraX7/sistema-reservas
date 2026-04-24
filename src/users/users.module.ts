@@ -8,8 +8,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 @Module({
   imports: [TypeOrmModule.forFeature([User])], // registra las entidades Item y User para que orm pueda usarlas en el servicio
   controllers: [UsersController],
-  providers: [UsersService], 
+  providers: [UsersService],
   exports: [UsersService], // exportamos el servicio para que pueda ser usado en otros módulos (AuthModule)
-
 })
 export class UsersModule {}

@@ -1,5 +1,12 @@
 ﻿// resource.entity.ts
-import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Company } from '../../companies/entities/company.entity';
 
 export enum ResourceStatus {
@@ -28,7 +35,10 @@ export class Resource {
   @Column()
   type!: string;
 
-  @ManyToOne(() => Company, company => company.resources, { nullable: false, eager: false })
+  @ManyToOne(() => Company, (company) => company.resources, {
+    nullable: false,
+    eager: false,
+  })
   @JoinColumn({ name: 'companyId' })
   company!: Company;
 

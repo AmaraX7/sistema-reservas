@@ -1,4 +1,10 @@
-import { IsEnum, IsNotEmpty, IsOptional, IsString, IsInt } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsInt,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ResourceStatus } from '../entities/resource.entity';
 
@@ -18,7 +24,10 @@ export class CreateResourceDto {
   @IsNotEmpty()
   location!: string;
 
-  @ApiProperty({ example: 'desk', enum: ['desk', 'meeting_room', 'lounge', 'parking'] })
+  @ApiProperty({
+    example: 'desk',
+    enum: ['desk', 'meeting_room', 'lounge', 'parking'],
+  })
   @IsString()
   @IsNotEmpty()
   type!: string;

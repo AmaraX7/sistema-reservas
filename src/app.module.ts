@@ -1,4 +1,9 @@
-﻿import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
+﻿import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ResourcesModule } from './resources/resources.module';
@@ -11,7 +16,6 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { CompaniesModule } from './companies/companies.module';
-
 
 @Module({
   imports: [
@@ -31,15 +35,17 @@ import { CompaniesModule } from './companies/companies.module';
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
         autoLoadEntities: true, // carga automáticamente las entidades registradas en los módulos
-        synchronize: process.env.NODE_ENV !== 'production',      // en produccion sync = false!! 
+        synchronize: process.env.NODE_ENV !== 'production', // en produccion sync = false!!
       }),
       inject: [ConfigService],
     }),
 
-      ThrottlerModule.forRoot([{
-    ttl: 60000,  // ventana de 60 segundos
-    limit: 20,   // máximo 20 requests por IP en esa ventana
-  }]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000, // ventana de 60 segundos
+        limit: 20, // máximo 20 requests por IP en esa ventana
+      },
+    ]),
 
     ResourcesModule,
 
@@ -52,10 +58,13 @@ import { CompaniesModule } from './companies/companies.module';
     CompaniesModule,
   ],
   controllers: [AppController],
-  providers: [AppService, { 
-  provide: APP_GUARD, 
-  useClass: ThrottlerGuard, // aplica el guard globalmente a toda la app
-}],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard, // aplica el guard globalmente a toda la app
+    },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
@@ -64,7 +73,6 @@ export class AppModule implements NestModule {
       .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }
-
 
 // flujo:
 // middleware, guards, pipes, interceptors, controllers, services, repositories, exception filters, response

@@ -1,8 +1,15 @@
-import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn, RelationId } from 'typeorm';
+import {
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { User } from '../../users/entities/users.entity';
 import { Resource } from '../../resources/entities/resource.entity';
 
-export enum ReservationStatus  {
+export enum ReservationStatus {
   CONFIRMED = 'CONFIRMED',
   CANCELLED = 'CANCELLED',
   COMPLETED = 'COMPLETED',
@@ -12,7 +19,7 @@ export enum ReservationStatus  {
 export class Reservation {
   @PrimaryGeneratedColumn()
   id!: number;
-  
+
   @ManyToOne(() => User, { eager: false }) // Relación con User, el usuario no se carga automáticamente con eager: false
   @JoinColumn({ name: 'userId' })
   user!: User;
@@ -27,7 +34,11 @@ export class Reservation {
   @Column()
   resourceId!: number;
 
-  @Column({ type: 'enum', enum: ReservationStatus, default: ReservationStatus.CONFIRMED })
+  @Column({
+    type: 'enum',
+    enum: ReservationStatus,
+    default: ReservationStatus.CONFIRMED,
+  })
   status!: ReservationStatus;
 
   @CreateDateColumn()

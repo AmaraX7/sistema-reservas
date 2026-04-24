@@ -37,3 +37,8 @@ migration-revert-prod:
 
 seed-prod:
 	npx cross-env DB_HOST=$(PROD_HOST) DB_PORT=$(PROD_PORT) DB_USERNAME=$(PROD_USER) DB_PASSWORD=$(PROD_PASSWORD) DB_NAME=$(PROD_DB) npx ts-node src/seed.ts
+
+
+
+test-e2e:
+	npx dotenv-cli -e .env.test -- jest --config ./test/jest-e2e.json --runInBand

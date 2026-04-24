@@ -1,13 +1,18 @@
-﻿import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+﻿import {
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Resource } from './entities/resource.entity';
 import { CreateResourceDto } from './dto/create-resource.dto';
 import { UpdateResourceDto } from './dto/update-resource.dto';
 import { PaginationDto } from '../common/dto/pagination.dto';
+import { UserRole } from '../users/entities/users.entity';
 
-
-// OPERACIONES TYPEORM a SQL 
+// OPERACIONES TYPEORM a SQL
 
 // // SELECT * FROM products
 // this.productsRepository.find();
@@ -57,14 +62,17 @@ export class ResourcesService {
     private readonly resourcesRepository: Repository<Resource>,
   ) {}
 
-  async findAll(pagination: PaginationDto, companyId?: number): Promise<{ resources: Resource[], total: number }> {
+  async findAll(
+    pagination: PaginationDto,
+    companyId?: number,
+  ): Promise<{ data: Resource[]; total: number }> {
     this.logger.log('Listing all resources');
     const [resources, total] = await this.resourcesRepository.findAndCount({
       where: companyId ? { companyId } : {},
       take: pagination.limit,
       skip: (pagination.page - 1) * pagination.limit,
     });
-    return { resources, total };
+    return { data: resources, total };
   }
 
   async findOne(id: number): Promise<Resource> {
@@ -76,8 +84,12 @@ export class ResourcesService {
     return resource;
   }
 
-  async create(dto: CreateResourceDto, role: string, companyId: number | null): Promise<Resource> {
-    if (role === 'COMPANY_ADMIN') {
+  async create(
+    dto: CreateResourceDto,
+    role: string,
+    companyId: number | null,
+  ): Promise<Resource> {
+    if (role === UserRole.COMPANY_ADMIN) {
       if (!companyId) throw new ForbiddenException('No company associated');
       dto.companyId = companyId; // fuerza la empresa del admin, ignora lo que mande el body
     }
@@ -86,20 +98,33 @@ export class ResourcesService {
     return this.resourcesRepository.save(resource);
   }
 
-  async update(id: number, dto: UpdateResourceDto, role: string, companyId: number | null): Promise<Resource> {
+  async update(
+    id: number,
+    dto: UpdateResourceDto,
+    role: string,
+    companyId: number | null,
+  ): Promise<Resource> {
     const resource = await this.findOne(id);
-    if (role === 'COMPANY_ADMIN' && resource.companyId !== companyId) {
-      throw new ForbiddenException('Cannot update resources from another company');
+    if (role === UserRole.COMPANY_ADMIN && resource.companyId !== companyId) {
+      throw new ForbiddenException(
+        'Cannot update resources from another company',
+      );
     }
     Object.assign(resource, dto);
     this.logger.log(`Updated resource id=${id}`);
     return this.resourcesRepository.save(resource);
   }
 
-  async deleteOne(id: number, role: string, companyId: number | null): Promise<void> {
+  async deleteOne(
+    id: number,
+    role: string,
+    companyId: number | null,
+  ): Promise<void> {
     const resource = await this.findOne(id);
-    if (role === 'COMPANY_ADMIN' && resource.companyId !== companyId) {
-      throw new ForbiddenException('Cannot delete resources from another company');
+    if (role === UserRole.COMPANY_ADMIN && resource.companyId !== companyId) {
+      throw new ForbiddenException(
+        'Cannot delete resources from another company',
+      );
     }
     await this.resourcesRepository.delete(id);
     this.logger.log(`Deleted resource id=${id}`);

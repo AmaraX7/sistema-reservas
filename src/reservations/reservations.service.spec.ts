@@ -87,7 +87,12 @@ describe('ReservationsService', () => {
     mockRepository.findOne.mockResolvedValue(null);
 
     await expect(
-      service.updateStatus(999, { status: ReservationStatus.CANCELLED }, 1, 'user'),
+      service.updateStatus(
+        999,
+        { status: ReservationStatus.CANCELLED },
+        1,
+        'user',
+      ),
     ).rejects.toThrow(NotFoundException);
   });
 });

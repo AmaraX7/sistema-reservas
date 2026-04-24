@@ -18,7 +18,9 @@ export class UpdateResourceDto {
   @IsOptional()
   location?: string;
 
-  @ApiPropertyOptional({ enum: ['desk', 'meeting_room', 'phone_booth', 'lounge', 'parking'] })
+  @ApiPropertyOptional({
+    enum: ['desk', 'meeting_room', 'phone_booth', 'lounge', 'parking'],
+  })
   @IsString()
   @IsOptional()
   type?: string;

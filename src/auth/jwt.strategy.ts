@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
+import { RequestWithUser } from './request-with-user.interface';
+import { JwtPayload } from './jwt-payload.interface';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-    
   constructor(private readonly configService: ConfigService) {
     // 2. JwtStrategy recibe el token y lo verifica con el secret
     // - jwtFromRequest: extrae el token del header Authorization: Bearer <token>
@@ -21,8 +22,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   // 3. Si el token es válido, Passport llama a validate() automáticamente
   // - payload es el objeto que metiste en jwtService.sign() al hacer login
   // - lo que devuelves aquí queda disponible como req.user en los controllers
-  async validate(payload: any) {
-    return { userId: payload.sub, email: payload.email, role: payload.role,  companyId: payload.companyId ?? null};
+  validate(payload: JwtPayload): RequestWithUser['user'] {
+    return {
+      userId: payload.sub,
+      email: payload.email,
+      role: payload.role,
+      companyId: payload.companyId ?? null,
+    };
   }
 }
 

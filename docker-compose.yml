@@ -36,6 +36,15 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    
+  db-test:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: ecommerce_test
+    ports:
+      - '5434:5432'
 
 volumes:
   postgres_data:
