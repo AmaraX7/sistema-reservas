@@ -1,3 +1,8 @@
+PROD_HOST=aws-1-eu-central-1.pooler.supabase.com
+PROD_DB=postgres
+PROD_PORT=5432
+
+
 # ─── Dev ───────────────────────────────────────────────────────────────────────
 dev:
 	npm run start:dev
@@ -31,6 +36,16 @@ logs:
 seed-docker:
 	docker exec -it sistema-reservas-app-1 npx ts-node src/seed.ts
 
+migration-run-docker:
+	docker exec -it sistema-reservas-app-1 npx typeorm-ts-node-commonjs migration:run -d src/data-source.ts
+
+
+# ─── Production ────────────────────────────────────────────────────────────────
+migration-run-prod:
+	npx cross-env DB_HOST=$(PROD_HOST) DB_PORT=$(PROD_PORT) DB_USERNAME=$(PROD_USER) DB_PASSWORD=$(PROD_PASSWORD) DB_NAME=$(PROD_DB) npx typeorm-ts-node-commonjs migration:run -d src/data-source.ts
+
+migration-revert-prod:
+	npx cross-env DB_HOST=$(PROD_HOST) DB_PORT=$(PROD_PORT) DB_USERNAME=$(PROD_USER) DB_PASSWORD=$(PROD_PASSWORD) DB_NAME=$(PROD_DB) npx typeorm-ts-node-commonjs migration:revert -d src/data-source.ts
 
 seed-prod:
-	npx cross-env DB_HOST=aws-1-eu-central-1.pooler.supabase.com DB_PORT=5432 DB_USERNAME=$(PROD_USER) DB_PASSWORD=$(PROD_PASSWORD) DB_NAME=postgres npx ts-node src/seed.ts
+	npx cross-env DB_HOST=$(PROD_HOST) DB_PORT=$(PROD_PORT) DB_USERNAME=$(PROD_USER) DB_PASSWORD=$(PROD_PASSWORD) DB_NAME=$(PROD_DB) npx ts-node src/seed.ts

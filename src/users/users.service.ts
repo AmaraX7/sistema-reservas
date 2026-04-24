@@ -76,8 +76,9 @@ async updateMe(id: number, dto: UpdateUserDto) {
     if (requesterRole === UserRole.COMPANY_ADMIN && user.companyId !== requesterCompanyId) {
       throw new ForbiddenException('Cannot delete users from another company');
     }
-    
-    await this.usersRepository.delete(id);
+    await this.usersRepository.softDelete(id); 
+    // si uso raw delete, borra directamente, con softDelete pone la fecha en deletedAt y no lo borra realmente, así no se me ponen corruptos las entidades q tienen fk a user, como las reservas, 
+    // y puedo mantener el historial de quién hizo qué reserva aunque el usuario se haya borrado
     this.logger.log(`Deleted user id=${id}`);
   }
 

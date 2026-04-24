@@ -138,4 +138,36 @@ async updateStatus(id: number, dto: UpdateReservationDto, userId: number, role: 
   this.logger.log(`Updated reservation status id=${id}, status=${reservation.status}`);
   return reservation;
 }
+
+async getAvailability(resourceId: number, date: string): Promise<{ date: string; availableSlots: { start: string; end: string }[] }> {
+  this.logger.log(`Getting availability for resourceId=${resourceId}, date=${date}`);
+
+  const OPEN_HOUR = 8;
+  const CLOSE_HOUR = 20;
+
+  const reservations = await this.reservationsRepository.find({
+    where: {
+      resourceId: resourceId,
+      status: ReservationStatus.CONFIRMED,
+      startTime: LessThan(new Date(`${date}T23:59:59.000Z`)),
+      endTime: MoreThan(new Date(`${date}T00:00:00.000Z`)),
+    },
+  });
+
+  const allSlots: { start: string; end: string }[] = [];
+  for (let hour = OPEN_HOUR; hour < CLOSE_HOUR; hour++) {
+    allSlots.push({
+      start: `${String(hour).padStart(2, '0')}:00`,
+      end: `${String(hour + 1).padStart(2, '0')}:00`,
+    });
+  }
+
+  const availableSlots = allSlots.filter(slot => {
+    const slotStart = new Date(`${date}T${slot.start}:00.000Z`);
+    const slotEnd = new Date(`${date}T${slot.end}:00.000Z`);
+    return !reservations.some(r => r.startTime < slotEnd && r.endTime > slotStart);
+  });
+
+  return { date, availableSlots };
+}
 }

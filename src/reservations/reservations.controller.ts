@@ -49,6 +49,14 @@ updateStatus(@Param('id') id: number, @Body() dto: UpdateReservationDto, @Reques
 async findAll(@Query() pagination: PaginationDto) {
   return this.reservationsService.findAll(pagination);
 }
+@Get(':id/availability')
+@ApiOperation({ summary: 'Ver slots disponibles de un recurso por fecha' })
+getAvailability(
+  @Param('id', ParseIntPipe) id: number,
+  @Query('date') date: string,
+) {
+  return this.reservationsService.getAvailability(id, date);
+}
 
 @Get(':id')
 @UseGuards(JwtAuthGuard)
@@ -57,5 +65,6 @@ async findAll(@Query() pagination: PaginationDto) {
 findById(@Param('id') id: string) {
   return this.reservationsService.findById(Number(id));
 }
+
 
 }

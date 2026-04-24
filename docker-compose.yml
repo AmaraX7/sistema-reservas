@@ -5,12 +5,13 @@ services:
     image: postgres:15-alpine
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: admin
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ecommerce
     ports:
       - '5433:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -25,9 +26,9 @@ services:
       DB_HOST: db
       DB_PORT: 5432
       DB_USERNAME: postgres
-      DB_PASSWORD: admin
+      DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ecommerce
-      JWT_SECRET: a6b2bb9af27ea7531481ac26a4f5fe5fc83ea2018bb4d0692fc892e0021a47f5
+      JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: 7d
       PORT: 3001
     depends_on:

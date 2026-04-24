@@ -1,6 +1,7 @@
 // user.entity.ts
-import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn, DeleteDateColumn } from 'typeorm';
 import { Company } from '../../companies/entities/company.entity';
+
 
 export enum UserRole {
   USER = 'user',
@@ -31,4 +32,8 @@ export class User {
 
   @CreateDateColumn()
   createdAt!: Date;
+
+
+  @DeleteDateColumn()
+  deletedAt?: Date;
 }
