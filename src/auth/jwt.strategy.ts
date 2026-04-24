@@ -22,7 +22,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   // - payload es el objeto que metiste en jwtService.sign() al hacer login
   // - lo que devuelves aquí queda disponible como req.user en los controllers
   async validate(payload: any) {
-    return { userId: payload.sub, email: payload.email, role: payload.role };
+    return { userId: payload.sub, email: payload.email, role: payload.role,  companyId: payload.companyId ?? null};
   }
 }
 

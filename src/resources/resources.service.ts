@@ -1,10 +1,11 @@
-﻿import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+﻿import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Resource } from './entities/resource.entity';
 import { CreateResourceDto } from './dto/create-resource.dto';
 import { UpdateResourceDto } from './dto/update-resource.dto';
 import { PaginationDto } from '../common/dto/pagination.dto';
+
 
 // OPERACIONES TYPEORM a SQL 
 
@@ -52,18 +53,18 @@ export class ResourcesService {
   private readonly logger = new Logger(ResourcesService.name);
 
   constructor(
-  @InjectRepository(Resource)
-  private readonly resourcesRepository: Repository<Resource>,
+    @InjectRepository(Resource)
+    private readonly resourcesRepository: Repository<Resource>,
   ) {}
 
-
-  async findAll(pagination: PaginationDto): Promise<{ resources: Resource[], total: number }> {
+  async findAll(pagination: PaginationDto, companyId?: number): Promise<{ resources: Resource[], total: number }> {
     this.logger.log('Listing all resources');
     const [resources, total] = await this.resourcesRepository.findAndCount({
-    take: pagination.limit,  // cuántos traer
-    skip: (pagination.page - 1) * pagination.limit,  // cuántos saltar
-  });
-    return { resources, total }; 
+      where: companyId ? { companyId } : {},
+      take: pagination.limit,
+      skip: (pagination.page - 1) * pagination.limit,
+    });
+    return { resources, total };
   }
 
   async findOne(id: number): Promise<Resource> {
@@ -75,22 +76,32 @@ export class ResourcesService {
     return resource;
   }
 
-  async deleteOne(id: number): Promise<void> {
-    await this.findOne(id); // lanza NotFoundException si no existe
-    await this.resourcesRepository.delete(id);
-    this.logger.log(`Deleted resource id=${id}`);
-  }
-
-  async create(dto: CreateResourceDto): Promise<Resource> {
+  async create(dto: CreateResourceDto, role: string, companyId: number | null): Promise<Resource> {
+    if (role === 'COMPANY_ADMIN') {
+      if (!companyId) throw new ForbiddenException('No company associated');
+      dto.companyId = companyId; // fuerza la empresa del admin, ignora lo que mande el body
+    }
     this.logger.log(`Creating resource name=${dto.name}, type=${dto.type}`);
     const resource = this.resourcesRepository.create(dto);
     return this.resourcesRepository.save(resource);
   }
-  
-  async update(id: number, dto: UpdateResourceDto): Promise<Resource> {
+
+  async update(id: number, dto: UpdateResourceDto, role: string, companyId: number | null): Promise<Resource> {
     const resource = await this.findOne(id);
+    if (role === 'COMPANY_ADMIN' && resource.companyId !== companyId) {
+      throw new ForbiddenException('Cannot update resources from another company');
+    }
     Object.assign(resource, dto);
     this.logger.log(`Updated resource id=${id}`);
     return this.resourcesRepository.save(resource);
+  }
+
+  async deleteOne(id: number, role: string, companyId: number | null): Promise<void> {
+    const resource = await this.findOne(id);
+    if (role === 'COMPANY_ADMIN' && resource.companyId !== companyId) {
+      throw new ForbiddenException('Cannot delete resources from another company');
+    }
+    await this.resourcesRepository.delete(id);
+    this.logger.log(`Deleted resource id=${id}`);
   }
 }

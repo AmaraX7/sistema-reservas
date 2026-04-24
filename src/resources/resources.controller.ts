@@ -1,4 +1,4 @@
-﻿import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+﻿import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Request } from '@nestjs/common';
 import { CreateResourceDto } from './dto/create-resource.dto';
 import { UpdateResourceDto } from './dto/update-resource.dto';
 import { ResourcesService } from './resources.service';
@@ -16,26 +16,29 @@ import { PaginationDto } from '../common/dto/pagination.dto';
 export class ResourcesController {
   constructor(private readonly resourcesService: ResourcesService) {}
 
-    @Get() 
-async findAll(@Query() pagination: PaginationDto) {
-  return this.resourcesService.findAll(pagination);
-}
-    @Post() 
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @ApiBearerAuth('JWT-auth')
-    @Roles('admin')
-    @ApiOperation({ summary: 'Crear un nuevo recurso' })
-  create(@Body() dto: CreateResourceDto): Promise<Resource> {
-  return this.resourcesService.create(dto);
-}
+  @Get()
+  @ApiOperation({ summary: 'Listar recursos' })
+  async findAll(@Query() pagination: PaginationDto, @Query('companyId') companyId?: number) {
+    return this.resourcesService.findAll(pagination, companyId);
+  }
 
-@Delete(':id') 
-@UseGuards(JwtAuthGuard, RolesGuard)
-@ApiBearerAuth('JWT-auth')
-@Roles('admin')
-@ApiOperation({ summary: 'Eliminar un recurso' })
-deleteOne(@Param('id') id: number): Promise<void> {
-    return this.resourcesService.deleteOne(id);
+  @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('company_admin', 'super_admin')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Crear un nuevo recurso' })
+  create(@Body() dto: CreateResourceDto, @Request() req): Promise<Resource> {
+    return this.resourcesService.create(dto, req.user.role, req.user.companyId);
+  }
+
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('company_admin', 'super_admin')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Eliminar un recurso' })
+  deleteOne(@Param('id') id: number, @Request() req): Promise<void> {
+    return this.resourcesService.deleteOne(id, req.user.role, req.user.companyId);
   }
 
 
@@ -45,12 +48,12 @@ deleteOne(@Param('id') id: number): Promise<void> {
     return this.resourcesService.findOne(id);
   }
 
-    @Patch(':id') 
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @ApiBearerAuth('JWT-auth')
-    @Roles('admin')
-    @ApiOperation({ summary: 'Actualizar un recurso' })
-    update(@Param('id') id: number, @Body() updateResourceDto: UpdateResourceDto): Promise<Resource> {
-    return this.resourcesService.update(id, updateResourceDto);
-    }
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('company_admin', 'super_admin')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Actualizar un recurso' })
+  update(@Param('id') id: number, @Body() dto: UpdateResourceDto, @Request() req): Promise<Resource> {
+    return this.resourcesService.update(id, dto, req.user.role, req.user.companyId);
+  }
 }

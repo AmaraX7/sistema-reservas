@@ -1,75 +1,36 @@
-﻿import {
-  IsBoolean,
-  IsEnum,
-  IsInt,
-  IsOptional,
-  IsString,
-  Min,
-} from 'class-validator';
+﻿import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { ResourceStatus } from '../entities/resource.entity';
 
 export class UpdateResourceDto {
-  // Base Resource
+  @ApiPropertyOptional()
   @IsString()
   @IsOptional()
   name?: string;
 
+  @ApiPropertyOptional()
   @IsString()
   @IsOptional()
   description?: string;
 
+  @ApiPropertyOptional()
   @IsString()
   @IsOptional()
   location?: string;
 
+  @ApiPropertyOptional({ enum: ['desk', 'meeting_room', 'phone_booth', 'lounge', 'parking'] })
+  @IsString()
+  @IsOptional()
+  type?: string;
+
+  @ApiPropertyOptional({ enum: ResourceStatus })
   @IsEnum(ResourceStatus)
   @IsOptional()
   status?: ResourceStatus;
 
-  // Room
+  @ApiPropertyOptional()
   @IsInt()
   @Min(1)
   @IsOptional()
-  capacity?: number;
-
-  @IsInt()
-  @Min(0)
-  @IsOptional()
-  floor?: number;
-
-  @IsString()
-  @IsOptional()
-  building?: string;
-
-  @IsBoolean()
-  @IsOptional()
-  hasProjector?: boolean;
-
-  // Laptop
-  @IsString()
-  @IsOptional()
-  brand?: string;
-
-  @IsInt()
-  @Min(1)
-  @IsOptional()
-  ram?: number;
-
-  @IsInt()
-  @Min(1)
-  @IsOptional()
-  storage?: number;
-
-  @IsString()
-  @IsOptional()
-  os?: string;
-
-  // LabEquipment
-  @IsString()
-  @IsOptional()
-  materialType?: string;
-
-  @IsBoolean()
-  @IsOptional()
-  requiresTraining?: boolean;
+  capacity?: number; // útil para meeting rooms
 }

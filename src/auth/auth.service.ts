@@ -16,8 +16,8 @@ constructor(
   private readonly configService: ConfigService,
 ) {}  
 
- private generateTokens(user: { id: number, email: string, role: string }) { // para decirle como espero que sea el user q recibo
-  const payload = { sub: user.id, email: user.email, role: user.role };
+ private generateTokens(user: { id: number, email: string, role: string, companyId: number | null }) { // para decirle como espero que sea el user q recibo
+  const payload = { sub: user.id, email: user.email, role: user.role, companyId: user.companyId ?? null };
   
   const access_token = this.jwtService.sign(payload);  // usa config del módulo
   

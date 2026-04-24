@@ -170,9 +170,10 @@ src/
 - ✅ Migraciones con TypeORM
 - ✅ README
 - ✅ Seed script
+- ✅ GET/PATCH/DELETE /users/me
 
 falta por hacer: 
- GET/PATCH/DELETE /users/me
+ 
  Tests Jest
  WebSockets
  Chatbot IA

@@ -1,5 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { User } from './entities/users.entity';
+import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
+import { User, UserRole } from './entities/users.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { NotFoundException } from '@nestjs/common/exceptions/not-found.exception';
@@ -19,6 +19,19 @@ export class UsersService {
   @InjectRepository(User)
   private readonly usersRepository: Repository<User>
 ) {}
+
+async findAll(role: UserRole, companyId: number | null) {
+  if (role === UserRole.SUPER_ADMIN) {
+    const users = await this.usersRepository.find();
+    return users.map(({ password, ...u }) => u);
+  }
+  if (role === UserRole.COMPANY_ADMIN) {
+    if (!companyId) throw new ForbiddenException('No company associated');
+    const users = await this.usersRepository.find({ where: { companyId } });
+    return users.map(({ password, ...u }) => u);
+  }
+  throw new ForbiddenException();
+}
 
   async findByEmail(email: string) {
   const user = await this.usersRepository.findOne({ where: { email } });
@@ -56,23 +69,33 @@ async updateMe(id: number, dto: UpdateUserDto) {
   return result;
 }
 
-async deleteById(id: number): Promise<void> {
-  const user = await this.usersRepository.findOne({ where: { id } });
-  if (!user) throw new NotFoundException(`User #${id} not found`);
-  await this.usersRepository.delete(id);
-  this.logger.log(`Deleted user id=${id}`);
-} 
+  async deleteById(id: number, requesterId: number, requesterRole: UserRole, requesterCompanyId: number | null): Promise<void> {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) throw new NotFoundException(`User #${id} not found`);
+    
+    if (requesterRole === UserRole.COMPANY_ADMIN && user.companyId !== requesterCompanyId) {
+      throw new ForbiddenException('Cannot delete users from another company');
+    }
+    
+    await this.usersRepository.delete(id);
+    this.logger.log(`Deleted user id=${id}`);
+  }
 
-  async updateRole(id: number, dto: UpdateRoleDto) {
-  const user = await this.usersRepository.findOne({ where: { id } });
-  if (!user) throw new NotFoundException(`User #${id} not found`);
-  
-  Object.assign(user, dto);
-  const updatedUser = await this.usersRepository.save(user); 
-  this.logger.log(`Updated user role id=${id}, role=${updatedUser.role}`);
-  const { password, ...result } = updatedUser;
-  return result;
-}
+  async updateRole(id: number, dto: UpdateRoleDto, requesterRole: UserRole, requesterCompanyId: number | null) {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) throw new NotFoundException(`User #${id} not found`);
+
+    if (requesterRole === UserRole.COMPANY_ADMIN) {
+      if (user.companyId !== requesterCompanyId) throw new ForbiddenException('Cannot update users from another company');
+      if (dto.role === UserRole.SUPER_ADMIN) throw new ForbiddenException('Cannot assign super_admin role');
+    }
+
+    Object.assign(user, dto);
+    const updated = await this.usersRepository.save(user);
+    this.logger.log(`Updated user role id=${id}, role=${updated.role}`);
+    const { password, ...result } = updated;
+    return result;
+  }
 
 
   

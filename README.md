@@ -1,6 +1,6 @@
 # Unibook API
 
-REST API for managing university resource reservations — classrooms, laptops, and lab equipment. Built with NestJS, PostgreSQL, and deployed on Render.
+REST API for managing coworking resource reservations Built with NestJS, PostgreSQL, and deployed on Render.
 
 **Production**: https://unibook-api.onrender.com  
 **Swagger docs**: https://unibook-api.onrender.com/api

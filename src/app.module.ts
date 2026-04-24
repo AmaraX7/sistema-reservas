@@ -10,6 +10,7 @@ import { ReservationsModule } from './reservations/reservations.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
+import { CompaniesModule } from './companies/companies.module';
 
 
 @Module({
@@ -47,6 +48,8 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
     AuthModule,
 
     ReservationsModule,
+
+    CompaniesModule,
   ],
   controllers: [AppController],
   providers: [AppService, { 

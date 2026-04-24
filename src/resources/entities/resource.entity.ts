@@ -1,6 +1,6 @@
-﻿import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { CreateDateColumn } from 'typeorm/decorator/columns/CreateDateColumn';
-
+﻿// resource.entity.ts
+import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Company } from '../../companies/entities/company.entity';
 
 export enum ResourceStatus {
   AVAILABLE = 'AVAILABLE',
@@ -10,8 +10,7 @@ export enum ResourceStatus {
 
 @Entity('resources')
 export class Resource {
-
-  @PrimaryGeneratedColumn() // id autoincremental como serial en SQL
+  @PrimaryGeneratedColumn()
   id!: number;
 
   @Column()
@@ -19,7 +18,6 @@ export class Resource {
 
   @Column({ nullable: true })
   description?: string;
-
 
   @Column()
   status!: ResourceStatus;
@@ -30,6 +28,16 @@ export class Resource {
   @Column()
   type!: string;
 
-  @CreateDateColumn() // fecha de creación automática
+  @ManyToOne(() => Company, company => company.resources, { nullable: false, eager: false })
+  @JoinColumn({ name: 'companyId' })
+  company!: Company;
+
+  @Column()
+  companyId!: number;
+
+  @CreateDateColumn()
   createdAt!: Date;
+
+  @Column({ nullable: true })
+  capacity?: number;
 }

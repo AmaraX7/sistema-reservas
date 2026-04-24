@@ -15,4 +15,4 @@ RUN npm run build
 EXPOSE 3001
 
 #comando para ejecutar la aplicación
-CMD ["sh", "-c", "node node_modules/.bin/typeorm migration:run -d dist/src/data-source.js && node dist/src/main"]
+CMD ["sh", "-c", "node node_modules/.bin/typeorm migration:run -d dist/data-source.js && node dist/main.js"]
