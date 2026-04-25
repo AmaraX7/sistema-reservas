@@ -15,6 +15,11 @@ export class TelegramService implements OnModuleInit {
   }
 
   onModuleInit() {
+      if (this.configService.get('NODE_ENV') !== 'production') {
+    console.log('Telegram bot disabled in development');
+    return;
+  }
+
     this.bot.on('text', async (ctx) => {
       const message = ctx.message.text;
       const sessionId = String(ctx.from.id); // id de telegram como sessionId
