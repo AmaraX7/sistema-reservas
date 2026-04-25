@@ -10,5 +10,6 @@ import { ResourcesModule } from '../resources/resources.module';
   imports: [TypeOrmModule.forFeature([Reservation]), ResourcesModule],
   providers: [ReservationsService],
   controllers: [ReservationsController],
+  exports: [ReservationsService],
 })
 export class ReservationsModule {}

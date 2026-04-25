@@ -180,6 +180,7 @@ export class ReservationsService {
   ): Promise<{
     date: string;
     availableSlots: { start: string; end: string }[];
+    resourceId: number;
   }> {
     this.logger.log(
       `Getting availability for resourceId=${resourceId}, date=${date}`,
@@ -213,6 +214,6 @@ export class ReservationsService {
       );
     });
 
-    return { date, availableSlots };
+    return { date, availableSlots, resourceId };
   }
 }

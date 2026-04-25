@@ -122,6 +122,37 @@ src/
 - **Rate limiting** — @nestjs/throttler limita requests por IP
 - **Multi-tenancy con Company** — cada Resource pertenece a una Company. COMPANY_ADMIN solo puede gestionar resources y usuarios de su empresa. SUPER_ADMIN gestiona todo. La jerarquía se aplica en el Service con ForbiddenException
 - **companyId en JWT** — el token incluye id, email, role y companyId para que los guards puedan filtrar por empresa sin consultar la BD
+- **Chatbot con Gemini 2.5 Flash** — integración con @google/generative-ai.
+  Se descartó generateContent en favor de startChat para mantener historial
+  de conversación por sesión. Cada usuario tiene su propio sessionId.
+
+- **SessionId como clave de conversación** — el cliente genera un sessionId
+  (UUID o id de Telegram) y lo manda en cada request. El backend guarda
+  las sesiones en un Map<string, any> en memoria. No persiste entre reinicios
+  del servidor, suficiente para MVP.
+
+- **System prompt dinámico con datos reales** — en vez de un prompt estático,
+  se consulta la BD antes de cada nueva sesión y se inyecta el contexto
+  de recursos y disponibilidad en el systemInstruction de Gemini.
+
+- **Caché en memoria para el chatbot** — para evitar abusos y reducir carga
+  en la BD, los recursos se cachean 5 minutos y la disponibilidad 1 minuto.
+  Se implementó con un objeto privado { data, expiresAt } y Date.now().
+  Sin Redis, solución simple suficiente para el volumen actual.
+
+- **Disponibilidad calculada por recurso** — se llama a getAvailability()
+  para cada recurso con Promise.all() para que las queries sean paralelas
+  en vez de secuenciales. La fecha es siempre la del día actual.
+
+- **Bot de Telegram con Telegraf** — TelegramModule con TelegramService
+  que implementa OnModuleInit para lanzar el bot al arrancar la app.
+  Usa el id de Telegram del usuario (ctx.from.id) como sessionId,
+  conectando directamente con ChatbotService. Sin controller porque
+  Telegram funciona con polling, no con endpoints REST.
+
+- **Rate limiting del chatbot** — protegido por el throttler global
+  (20 req/60s por IP) más la caché en memoria que evita consultas
+  repetidas a la BD.
 
 ## Endpoints principales
 
@@ -180,7 +211,7 @@ src/
 - COMPANY_ADMIN → gestiona resources y usuarios de su empresa, ve reservas de su empresa
 - SUPER_ADMIN → gestiona todo, incluyendo empresas y usuarios de cualquier empresa
 
-## Estado actual
+## Estado actual actualizado
 - ✅ Auth completo (register, login, JWT, guards, roles, refresh tokens)
 - ✅ Users (entidad, servicio, controller, roles)
 - ✅ Resources (CRUD completo, paginacion)
@@ -197,15 +228,17 @@ src/
 - ✅ Multi-tenancy (Company → Resource, Company → User)
 - ✅ GET/PATCH/DELETE /users/me
 - ✅ Makefile (dev, seed, migrations, docker)
-- ✅ Pivot a dominio coworking (desk, meeting_room, phone_booth, lounge, parking)
+- ✅ Pivot a dominio coworking
+- ✅ Tests Jest E2E
+- ✅ Chatbot IA con Gemini 2.5 Flash
+- ✅ Historial de conversación con startChat
+- ✅ Caché en memoria para recursos y disponibilidad
+- ✅ Bot de Telegram con Telegraf
 
-falta por hacer: 
-Tests Jest
-WebSockets
-Chatbot IA
-Bot Telegram
-Frontend React
-
+## Pendiente
+- [ ] Frontend Next.js
+- [ ] WebSockets para notificaciones en tiempo real
+- [ ] Tests unitarios ReservationsService
 ## Roadmap
 
 ### Fase 2 — Backend production-ready (completada)

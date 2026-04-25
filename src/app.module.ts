@@ -16,6 +16,8 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { CompaniesModule } from './companies/companies.module';
+import { ChatbotModule } from './chatbot/chatbot.module';
+import { TelegramModule } from './telegram/telegram.module';
 
 @Module({
   imports: [
@@ -56,6 +58,10 @@ import { CompaniesModule } from './companies/companies.module';
     ReservationsModule,
 
     CompaniesModule,
+
+    ChatbotModule,
+
+    TelegramModule,
   ],
   controllers: [AppController],
   providers: [
