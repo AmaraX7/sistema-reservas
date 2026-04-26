@@ -172,4 +172,11 @@ export class VisitsService {
 
     return { doctorId, date, availableSlots };
   }
+
+  async findByDate(date: string): Promise<Visit[]> {
+    return this.visitsRepository
+      .createQueryBuilder('visit')
+      .where('DATE(visit.startTime) = :date', { date })
+      .getMany();
+  }
 }

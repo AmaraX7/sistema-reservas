@@ -46,10 +46,8 @@ export class ChatbotService {
     const todayDate = new Date().toISOString().split('T')[0];
 
     // Una sola query de todas las visitas de hoy
-    const { data: allVisits } = await this.visitsService.findAll({ page: 1, limit: 1000 });
-    const todayVisits = allVisits.filter(v =>
-      new Date(v.startTime).toISOString().split('T')[0] === todayDate
-    );
+   const todayVisits = await this.visitsService.findByDate(todayDate);
+
 
     const availabilityLines = clinics.map(clinic => {
       const clinicVisits = todayVisits.filter(v => v.clinicId === clinic.id);
