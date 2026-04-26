@@ -4,7 +4,6 @@ import { ChatbotService } from '../src/chatbot/chatbot.service';
 import { ClinicsService } from '../src/clinics/clinics.service';
 import { VisitsService } from '../src/visits/visits.service';
 
-// Mock de GoogleGenerativeAI
 const mockSendMessage = jest.fn().mockResolvedValue({
   response: { text: () => 'Respuesta de prueba' },
 });
@@ -26,28 +25,28 @@ jest.mock('@google/generative-ai', () => ({
 describe('ChatbotService', () => {
   let service: ChatbotService;
 
-  const mockResourcesService = {
+  const mockClinicsService = {
     findAll: jest.fn().mockResolvedValue({
       data: [
         {
-          id: '1',
-          name: 'Sala A',
-          type: 'meeting_room',
+          id: 1,
+          name: 'Clínica A',
+          specialty: 'Cardiología',
           capacity: 10,
-          status: 'AVAILABLE',
-          location: 'Planta 1',
+          address: 'Calle Mayor 1',
         },
       ],
       total: 1,
     }),
   };
 
-const mockReservationsService = {
-  findAll: jest.fn().mockResolvedValue({
-    data: [],
-    total: 0,
-  }),
-};
+  const mockVisitsService = {
+    findAll: jest.fn().mockResolvedValue({
+      data: [],
+      total: 0,
+    }),
+    findByDate: jest.fn().mockResolvedValue([]), // ← añadido
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -61,11 +60,11 @@ const mockReservationsService = {
         },
         {
           provide: ClinicsService,
-          useValue: mockResourcesService,
+          useValue: mockClinicsService, // ← cambiado
         },
         {
           provide: VisitsService,
-          useValue: mockReservationsService,
+          useValue: mockVisitsService,  // ← cambiado
         },
       ],
     }).compile();
@@ -89,7 +88,7 @@ const mockReservationsService = {
   it('debería reutilizar la sesión existente para el mismo sessionId', async () => {
     await service.chat('Hola', 'session-2');
     await service.chat('Qué salas hay?', 'session-2');
-    expect(mockStartChat).toHaveBeenCalledTimes(1); // solo se crea una vez
+    expect(mockStartChat).toHaveBeenCalledTimes(1);
   });
 
   it('debería crear sesiones separadas para sessionIds distintos', async () => {
@@ -106,8 +105,6 @@ const mockReservationsService = {
   it('debería usar el caché de recursos y no llamar dos veces a findAll', async () => {
     await service.chat('Hola', 'session-6');
     await service.chat('Qué salas hay?', 'session-6');
-    // findAll se llama dos veces (recursos + disponibilidad) en el primer mensaje
-    // en el segundo mensaje usa el caché
-    expect(mockResourcesService.findAll).toHaveBeenCalledTimes(2);
+    expect(mockClinicsService.findAll).toHaveBeenCalledTimes(2);
   });
 });
